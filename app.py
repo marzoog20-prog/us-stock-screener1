@@ -6,34 +6,37 @@ import pandas as pd
 st.set_page_config(page_title="US Stock Screener", layout="wide")
 
 st.title("📊 استراتيجية فحص الأسهم الأمريكية (US Stocks)")
-st.write("موقعك الخاص لفحص وفرز الأسهم الأمريكية بناءً على المؤشرات الفنية والأساسية.")
+st.write("موقعك الخاص لفحص وفرز مئات الأسهم الأمريكية تلقائياً بناءً على المؤشرات الفنية.")
 
 # --- الشريط الجانبي للإعدادات والفلاتر ---
 st.sidebar.header("⚙️ إعدادات الفحص الأساسية")
 
-# 1. إدخال رموز الأسهم أو اختيار مجموعة
-default_tickers = "AAPL, MSFT, GOOGL, AMZN, TSLA, NVDA, META, NFLX, AMD, INTC, QCOM, PYPL, PEP, COST, ADBE"
-tickers_input = st.sidebar.text_area("أدخل رموز الأسهم (افصل بينها بفاصلة)", default_tickers)
-tickers = [t.strip().upper() for t in tickers_input.split(",")]
+# قائمة واسعة وشاملة لأشهر الأسهم الأمريكية تلقائياً لكي لا تحتاج لكتابتها
+default_tickers = [
+    "AAPL", "MSFT", "GOOGL", "AMZN", "TSLA", "NVDA", "META", "NFLX", "AMD", "INTC", 
+    "QCOM", "PYPL", "PEP", "COST", "ADBE", "JPM", "V", "MA", "UNH", "HD", 
+    "PG", "JNJ", "XOM", "CVX", "BAC", "PFE", "ABBV", "KO", "DIS", "MRK", 
+    "T", "VZ", "WMT", "NKE", "IBM", "ORCL", "CRM", "BA", "CAT", "GE"
+]
+
+st.sidebar.write(f"📈 جاري فحص قائمة تلقائية تضم {len(default_tickers)} شركة كبرى في السوق الأمريكي.")
 
 st.sidebar.header("📉 المؤشرات الفنية")
-# إعدادات RSI
-rsi_min = st.sidebar.number_input("الحد الأدنى لـ RSI (14)", value=20.0, step=1.0)
-rsi_max = st.sidebar.number_input("الحد الأقصى لـ RSI (14)", value=40.0, step=1.0)
+rsi_min = st.sidebar.number_input("الحد الأدنى لـ RSI (14)", value=0.0, step=1.0)
+rsi_max = st.sidebar.number_input("الحد الأقصى لـ RSI (14)", value=50.0, step=1.0)
 
 # الإطار الزمني
 timeframe = st.sidebar.selectbox("الإطار الزمني", ["يومي (Daily)", "أسبوعي (Weekly)"], index=0)
 interval_val = "1d" if "يومي" in timeframe else "1wk"
 
 # زر بدء الفحص
-if st.sidebar.button("بدء الفحص 🚀"):
-    st.info("جاري جلب بيانات الأسهم وتحليلها... يرجى الانتظار قليلاً.")
+if st.sidebar.button("بدء الفحص التلقائي 🚀"):
+    st.info("جاري سحب وفحص الأسهم الأمريكية تلقائياً... يرجى الانتظار قليلاً.")
     
     results = []
     
-    for ticker in tickers:
+    for ticker in default_tickers:
         try:
-            # جلب البيانات التاريخية للأسهم عبر yfinance
             stock = yf.Ticker(ticker)
             df = stock.history(period="6mo", interval=interval_val)
             
@@ -50,7 +53,7 @@ if st.sidebar.button("بدء الفحص 🚀"):
             current_price = df['Close'].iloc[-1]
             current_rsi = df['RSI'].iloc[-1]
             
-            # تطبيق الفلاتر (مثلاً شرط الـ RSI)
+            # تطبيق الفلاتر
             if rsi_min <= current_rsi <= rsi_max:
                 results.append({
                     "الرمز (Ticker)": ticker,
@@ -64,7 +67,7 @@ if st.sidebar.button("بدء الفحص 🚀"):
     # عرض النتائج
     if results:
         res_df = pd.DataFrame(results)
-        st.success(f"تم العثور على {len(res_df)} سهم مطابق لشروطك:")
+        st.success(f"تم العثور على {len(res_df)} سهم مطابق لشروطك من القائمة التلقائية:")
         st.dataframe(res_df, use_container_width=True)
     else:
-        st.warning("لم يتم العثور على أسهم تطابق الشروط الحالية، جرب تغيير نطاق المؤشرات.")
+        st.warning("لم يتم العثور على أسهم تطابق الشروط الحالية، جرب توسيع نطاق الـ RSI.")
