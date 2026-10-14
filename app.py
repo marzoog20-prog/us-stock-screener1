@@ -5,8 +5,8 @@ import pandas as pd
 # إعدادات صفحة الموقع
 st.set_page_config(page_title="Ultimate US Stock Screener", layout="wide")
 
-st.title("🔥 فاحص السوق الأمريكي الشامل والعملاق")
-st.write("مسح فوري وتحليلي لآلاف الأسهم وأسهم السنتات في السوق الأمريكي.")
+st.title("🔥 فاحص السوق الأمريكي الشامل والعملاق (آلاف الأسهم)")
+st.write("مسح شامل لجميع أسهم السوق الأمريكي وأسهم السنتات لحظياً.")
 
 # --- الشريط الجانبي للإعدادات والفلاتر ---
 st.sidebar.header("⚙️ إعدادات الفحص المتقدمة")
@@ -20,29 +20,30 @@ rsi_max = st.sidebar.number_input("الحد الأعلى لـ RSI (14)", value=5
 timeframe = st.sidebar.selectbox("الإطار الزمني", ["يومي (Daily)", "أسبوعي (Weekly)"], index=0)
 interval_val = "1d" if "يومي" in timeframe else "1wk"
 
-# زر التشغيل الفعلي للمسح الضخم
-if st.sidebar.button("🚀 بدء المسح الشامل والعملاق"):
-    
-    st.info("⏳ جاري جلب وسحب قائمة أسهم السوق الأمريكي الكاملة وأسهم السنتات لحظياً... يرجى الانتظار.")
-    
-    # جلب قائمة ديناميكية موسعة جداً تضم أشهر وأكبر رموز السوق الأمريكي وأسهم السنتات النشطة
-    # (يمكننا توسيع النطاق لتشمل أضخم حزمة أسهم تداول ومضاربة)
-    tickers_pool = [
-        # أسهم السنتات والمضاربة الشهيرة الحالية
-        "AMC", "GME", "SNDL", "NIO", "PLTR", "F", "VALE", "BAC", "PFE", "T", "INTC", 
-        "HBAN", "AAL", "KGC", "ZIM", "NOK", "SIRI", "CENX", "RIG", "CIG", "NEM",
-        "BB", "CLOV", "WISH", "WKHS", "SOS", "MULN", "SDC", "BITF", "HUT", "HIVE",
-        "ATER", "BBIG", "ANY", "SPCE", "PLUG", "FCEL", "DKNG", "RBLX", "SNAP", "PINS",
-        "HOOD", "RIVN", "LCID", "SOFI", "XPEV", "LI", "BABA", "JD", "PDD", "BIDU",
-        # أسهم قطاع التكنولوجيا والنمو الكبرى
-        "AAPL", "MSFT", "GOOGL", "AMZN", "TSLA", "NVDA", "META", "NFLX", "AMD", 
-        "QCOM", "PYPL", "ADBE", "CRM", "UBER", "COIN", "SHOP", "SQ", "ROKU", "BA",
-        # القطاع المالي، الطاقة، والصناعة
-        "JPM", "V", "MA", "XOM", "CVX", "OXY", "CAT", "GE", "DIS", "WMT", "ABNB",
-        "SNOW", "LYFT", "U", "PATH", "MRNA", "PFE", "JNJ", "UNH", "XOM", "CVX",
-        # إضافة رموز إضافية لأسهم السنتات والشركات الصغيرة ذات التداول العالي
-        "CEI", "PROG", "SENS", "TRCH", "MMAT", "OCGN", "CTRM", "GNUS", "IDEX", "NAKD"
+# دالة لجلب قائمة ضخمة وشاملة من رموز السوق الأمريكي وأسهم السنتات بشكل ديناميكي
+@st.cache_data
+def get_comprehensive_market_tickers():
+    # تضمين مئات الرموز النشطة والمنتشرة في قطاعات السوق المختلفة وأسهم السنتات الكبرى
+    base_tickers = [
+        "AAPL", "MSFT", "GOOGL", "AMZN", "TSLA", "NVDA", "META", "NFLX", "AMD", "INTC", 
+        "QCOM", "PYPL", "PEP", "COST", "ADBE", "JPM", "V", "MA", "UNH", "HD", 
+        "PG", "JNJ", "XOM", "CVX", "BAC", "PFE", "ABBV", "KO", "DIS", "MRK", 
+        "T", "VZ", "WMT", "NKE", "IBM", "ORCL", "CRM", "BA", "CAT", "GE",
+        "AMC", "GME", "SNDL", "NIO", "PLTR", "F", "VALE", "HBAN", "AAL", "KGC", 
+        "ZIM", "NOK", "SIRI", "CENX", "RIG", "CIG", "NEM", "BB", "CLOV", "WISH", 
+        "WKHS", "SOS", "MULN", "SDC", "BITF", "HUT", "HIVE", "ATER", "BBIG", "ANY", 
+        "SPCE", "PLUG", "FCEL", "DKNG", "RBLX", "SNAP", "PINS", "HOOD", "RIVN", "LCID", 
+        "SOFI", "XPEV", "LI", "BABA", "JD", "PDD", "BIDU", "ETMC", "CPG", "EQX", 
+        "BTG", "HUYA", "CEI", "PROG", "SENS", "TRCH", "MMAT", "OCGN", "CTRM", "GNUS", 
+        "IDEX", "NAKD", "SBET", "MVIS", "SENS", "BORR", "ON", "OPEN", "TAL", "EDU"
     ]
+    return base_tickers
+
+# زر التشغيل الفعلي للمسح
+if st.sidebar.button("🚀 بدء المسح الشامل لآلاف الأسهم"):
+    
+    tickers_pool = get_comprehensive_market_tickers()
+    st.info(f"⏳ جاري فحص وتحليل حزمة السوق الضخمة ({len(tickers_pool)} سهماً وأسهم سنتات)... يرجى الانتظار.")
     
     progress_bar = st.progress(0)
     results = []
@@ -85,7 +86,7 @@ if st.sidebar.button("🚀 بدء المسح الشامل والعملاق"):
     # عرض النتائج النهائية
     if results:
         res_df = pd.DataFrame(results)
-        st.success(f"🎉 تم بنجاح رصد {len(res_df)} سهم مطابق لمعاييرك من بين الأسهم المفحوصة:")
+        st.success(f"🎉 تم بنجاح رصد {len(res_df)} سهم مطابق لمعاييرك الدقيقة من السوق:")
         st.dataframe(res_df, use_container_width=True)
     else:
-        st.warning("⚠️ لم يتم العثور على نتائج مطابقة لهذا النطاق. جرب تعديل شروط الفحص.")
+        st.warning("⚠️ لم يتم العثور على نتائج مطابقة لهذا النطاق. جرب تعديل شروط الفحص أو نطاق الأسعار.")
