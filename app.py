@@ -3,47 +3,45 @@ import yfinance as yf
 import pandas as pd
 
 # إعدادات صفحة الموقع
-st.set_page_config(page_title="Ultimate US Stock Screener", layout="wide")
+st.set_page_config(page_title="Professional US Stock Screener", layout="wide")
 
-st.title("🔥 فاحص السوق الأمريكي الشامل والعملاق (آلاف الأسهم)")
-st.write("مسح شامل لجميع أسهم السوق الأمريكي وأسهم السنتات لحظياً.")
+st.title("🎯 الفاحص المحترف للأسهم الأمريكية (RSI + الاتجاه + الأسهم المخصصة)")
+st.write("أداة متقدمة لفحص الأسهم مع إمكانية إضافة أي أسهم جديدة تريدها يدوياً.")
 
 # --- الشريط الجانبي للإعدادات والفلاتر ---
 st.sidebar.header("⚙️ إعدادات الفحص المتقدمة")
 
 max_price = st.sidebar.number_input("الحد الأقصى لسعر السهم ($)", value=1000.0, step=1.0)
-min_price = st.sidebar.number_input("الحد الأدنى لسعر السهم ($) (أسهم السنتات)", value=0.01, step=0.05)
+min_price = st.sidebar.number_input("الحد الأدنى لسعر السهم ($)", value=0.01, step=0.05)
 
 rsi_min = st.sidebar.number_input("الحد الأدنى لـ RSI (14)", value=0.0, step=1.0)
 rsi_max = st.sidebar.number_input("الحد الأعلى لـ RSI (14)", value=50.0, step=1.0)
 
-timeframe = st.sidebar.selectbox("الإطار الزمني", ["يومي (Daily)", "أسبوعي (Weekly)"], index=0)
-interval_val = "1d" if "يومي" in timeframe else "1wk"
+# خانة مخصصة لإضافة أسهم زيادة
+custom_tickers_input = st.sidebar.text_input(
+    "أضف أسهم زيادة (مفصولة بفاصلة مثل: TSLA, NVDA, AAPL):",
+    value=""
+)
 
-# دالة لجلب قائمة ضخمة وشاملة من رموز السوق الأمريكي وأسهم السنتات بشكل ديناميكي
-@st.cache_data
-def get_comprehensive_market_tickers():
-    # تضمين مئات الرموز النشطة والمنتشرة في قطاعات السوق المختلفة وأسهم السنتات الكبرى
+# فلتر الاتجاه العام
+filter_trend = st.sidebar.checkbox("شرط الاتجاه الصاعد (السعر فوق متوسط 50)", value=False)
+
+# زر التشغيل
+if st.sidebar.button("🚀 بدء الفحص الشامل"):
+    
+    # القائمة الأساسية الشاملة
     base_tickers = [
         "AAPL", "MSFT", "GOOGL", "AMZN", "TSLA", "NVDA", "META", "NFLX", "AMD", "INTC", 
-        "QCOM", "PYPL", "PEP", "COST", "ADBE", "JPM", "V", "MA", "UNH", "HD", 
-        "PG", "JNJ", "XOM", "CVX", "BAC", "PFE", "ABBV", "KO", "DIS", "MRK", 
-        "T", "VZ", "WMT", "NKE", "IBM", "ORCL", "CRM", "BA", "CAT", "GE",
-        "AMC", "GME", "SNDL", "NIO", "PLTR", "F", "VALE", "HBAN", "AAL", "KGC", 
-        "ZIM", "NOK", "SIRI", "CENX", "RIG", "CIG", "NEM", "BB", "CLOV", "WISH", 
-        "WKHS", "SOS", "MULN", "SDC", "BITF", "HUT", "HIVE", "ATER", "BBIG", "ANY", 
-        "SPCE", "PLUG", "FCEL", "DKNG", "RBLX", "SNAP", "PINS", "HOOD", "RIVN", "LCID", 
-        "SOFI", "XPEV", "LI", "BABA", "JD", "PDD", "BIDU", "ETMC", "CPG", "EQX", 
-        "BTG", "HUYA", "CEI", "PROG", "SENS", "TRCH", "MMAT", "OCGN", "CTRM", "GNUS", 
-        "IDEX", "NAKD", "SBET", "MVIS", "SENS", "BORR", "ON", "OPEN", "TAL", "EDU"
+        "QCOM", "PYPL", "COST", "ADBE", "JPM", "V", "MA", "UNH", "HD", "DIS",
+        "AMC", "GME", "SNDL", "NIO", "PLTR", "F", "VALE", "BAC", "PFE", "T", 
+        "HBAN", "AAL", "ZIM", "NOK", "SIRI", "BB", "CLOV", "WISH", "PLUG", "SOFI"
     ]
-    return base_tickers
-
-# زر التشغيل الفعلي للمسح
-if st.sidebar.button("🚀 بدء المسح الشامل لآلاف الأسهم"):
     
-    tickers_pool = get_comprehensive_market_tickers()
-    st.info(f"⏳ جاري فحص وتحليل حزمة السوق الضخمة ({len(tickers_pool)} سهماً وأسهم سنتات)... يرجى الانتظار.")
+    # دمج الأسهم الأساسية مع الأسهم التي أضافها المستخدم بالخانة المخصصة
+    user_added = [t.strip().upper() for t in custom_tickers_input.split(",") if t.strip()]
+    tickers_pool = list(set(base_tickers + user_added)) # دمج وحذف التكرار
+    
+    st.info(f"⏳ جاري فحص وتحليل إجمالي ({len(tickers_pool)} سهماً)... يرجى الانتظار.")
     
     progress_bar = st.progress(0)
     results = []
@@ -52,9 +50,9 @@ if st.sidebar.button("🚀 بدء المسح الشامل لآلاف الأسه�
     for i, ticker in enumerate(tickers_pool):
         try:
             stock = yf.Ticker(ticker)
-            df = stock.history(period="3mo", interval=interval_val)
+            df = stock.history(period="6mo")
             
-            if len(df) < 14:
+            if len(df) < 50:
                 progress_bar.progress((i + 1) / total)
                 continue
                 
@@ -65,17 +63,34 @@ if st.sidebar.button("🚀 بدء المسح الشامل لآلاف الأسه�
             rs = gain / loss
             df['RSI'] = 100 - (100 / (1 + rs))
             
+            # حساب المتوسط المتحرك البسيط 50 يوم
+            df['SMA_50'] = df['Close'].rolling(window=50).mean()
+            
             current_price = df['Close'].iloc[-1]
             current_rsi = df['RSI'].iloc[-1]
+            current_sma50 = df['SMA_50'].iloc[-1]
             
-            # تطبيق الفلاتر الشاملة
-            if min_price <= current_price <= max_price and rsi_min <= current_rsi <= rsi_max:
-                results.append({
-                    "الرمز (Ticker)": ticker,
-                    "السعر ($)": round(current_price, 4),
-                    "مؤشر RSI": round(current_rsi, 2),
-                    "الحالة": "فرصة متوافقة 🎯"
-                })
+            # تطبيق الفلاتر الأساسية
+            pass_price_rsi = (min_price <= current_price <= max_price) and (rsi_min <= current_rsi <= rsi_max)
+            
+            if pass_price_rsi:
+                if filter_trend:
+                    if current_price > current_sma50:
+                        results.append({
+                            "الرمز (Ticker)": ticker,
+                            "السعر ($)": round(current_price, 4),
+                            "مؤشر RSI": round(current_rsi, 2),
+                            "متوسط 50 ($)": round(current_sma50, 2),
+                            "الحالة": "اتجاه صاعد + RSI ممتاز 📈"
+                        })
+                else:
+                    results.append({
+                        "الرمز (Ticker)": ticker,
+                        "السعر ($)": round(current_price, 4),
+                        "مؤشر RSI": round(current_rsi, 2),
+                        "متوسط 50 ($)": round(current_sma50, 2),
+                        "الحالة": "فرصة متوافقة 🎯"
+                    })
         except Exception:
             continue
             
@@ -83,10 +98,10 @@ if st.sidebar.button("🚀 بدء المسح الشامل لآلاف الأسه�
         
     progress_bar.empty()
     
-    # عرض النتائج النهائية
+    # عرض النتائج مع العمود الجديد بوضوح
     if results:
         res_df = pd.DataFrame(results)
-        st.success(f"🎉 تم بنجاح رصد {len(res_df)} سهم مطابق لمعاييرك الدقيقة من السوق:")
+        st.success(f"🎉 تم رصد {len(res_df)} سهم تطابق المعايير:")
         st.dataframe(res_df, use_container_width=True)
     else:
-        st.warning("⚠️ لم يتم العثور على نتائج مطابقة لهذا النطاق. جرب تعديل شروط الفحص أو نطاق الأسعار.")
+        st.warning("⚠️ لم يتم العثور على نتائج مطابقة للشروط الحالية. جرب توسيع نطاق الـ RSI أو إلغاء شرط الاتجاه الصاعد.")
