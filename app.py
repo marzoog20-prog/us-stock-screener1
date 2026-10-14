@@ -11,7 +11,7 @@ st.write("موقعك الخاص لفحص وفرز الأسهم الأمريكي�
 # --- الشريط الجانبي للإعدادات والفلاتر ---
 st.sidebar.header("⚙️ إعدادات الفحص الأساسية")
 
-# 1. إدخال رموز الأسهم أو اختيار مجموعة (مثلاً عينة من الأسهم الأمريكية الشهيرة أو قائمة مقترحة)
+# 1. إدخال رموز الأسهم أو اختيار مجموعة
 default_tickers = "AAPL, MSFT, GOOGL, AMZN, TSLA, NVDA, META, NFLX, AMD, INTC, QCOM, PYPL, PEP, COST, ADBE"
 tickers_input = st.sidebar.text_area("أدخل رموز الأسهم (افصل بينها بفاصلة)", default_tickers)
 tickers = [t.strip().upper() for t in tickers_input.split(",")]
@@ -64,7 +64,7 @@ if st.sidebar.button("بدء الفحص 🚀"):
     # عرض النتائج
     if results:
         res_df = pd.DataFrame(results)
-        st.success(تم العثور على {len(res_df)} سهم مطابق لشروطك:)
+        st.success(f"تم العثور على {len(res_df)} سهم مطابق لشروطك:")
         st.dataframe(res_df, use_container_width=True)
     else:
         st.warning("لم يتم العثور على أسهم تطابق الشروط الحالية، جرب تغيير نطاق المؤشرات.")
